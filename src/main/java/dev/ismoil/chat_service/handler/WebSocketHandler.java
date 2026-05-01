@@ -8,16 +8,23 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketHandler  extends TextWebSocketHandler {
 
+    private Map<String, WebSocketSession> webSocketSessions = new HashMap<>();
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Connected to WebSocket" + session.getId());
 
+        this.webSocketSessions.put(session.getId(), session);
         session.sendMessage(new org.springframework.web.socket.TextMessage("Hello from WebSocket"));
     }
 
@@ -25,7 +32,17 @@ public class WebSocketHandler  extends TextWebSocketHandler {
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
 
         log.info("Received message:  " + message.getPayload());
-        session.sendMessage(new org.springframework.web.socket.TextMessage("Hello from WebSocket"));
+        this.webSocketSessions.values().forEach(
+                webSocketSession ->
+                {
+                    try {
+                        webSocketSession.sendMessage(message);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+        );
     }
 
 
@@ -33,6 +50,7 @@ public class WebSocketHandler  extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 
         log.info("Disconnected from WebSocket" + session.getId());
-        super.afterConnectionClosed(session, status);
+
+        this.webSocketSessions.remove(session.getId());
     }
 }
