@@ -1,7 +1,10 @@
 let websocket;
 
 function onOpen() {
-  websocket.send("connected");
+
+ let username = document.getElementById("username");
+
+  websocket.send("connected : "+ username.value );
   console.log("connected: onOpen()");
 }
 
@@ -32,9 +35,10 @@ function disconnect() {
 }
 
 function sendMessage() {
+  let username = document.getElementById("username");
   let message = document.getElementById("message");
 
-  websocket.send(message.value);
+  websocket.send(username.value +" : "+ message.value);
   message.value = "";
   console.log("sent: send()");
 }
