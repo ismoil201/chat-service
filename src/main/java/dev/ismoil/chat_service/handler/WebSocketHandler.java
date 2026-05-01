@@ -17,12 +17,15 @@ public class WebSocketHandler  extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Connected to WebSocket" + session.getId());
+
+        session.sendMessage(new org.springframework.web.socket.TextMessage("Hello from WebSocket"));
     }
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
 
         log.info("Received message:  " + message.getPayload());
+        session.sendMessage(new org.springframework.web.socket.TextMessage("Hello from WebSocket"));
     }
 
 
@@ -30,5 +33,6 @@ public class WebSocketHandler  extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 
         log.info("Disconnected from WebSocket" + session.getId());
+        super.afterConnectionClosed(session, status);
     }
 }
