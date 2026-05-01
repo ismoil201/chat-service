@@ -2,9 +2,8 @@ let websocket;
 
 function onOpen() {
 
- let username = document.getElementById("username");
-
-  websocket.send("connected : "+ username.value );
+   let username = document.getElementById("username");
+  websocket.send("connected : "+ username.value);
   console.log("connected: onOpen()");
 }
 
