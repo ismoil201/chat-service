@@ -22,7 +22,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("com.mysql:mysql-connector-j")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-oauth2-client-test")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -1,63 +1,80 @@
-let websocket;
+const stompClient = new StompJs.Client({
+  brokerURL: 'ws://localhost:8080/stomp/chats'
+});
 
-function onOpen() {
-
-   let username = document.getElementById("username");
-  websocket.send("connected : "+ username.value);
-  console.log("connected: onOpen()");
-}
-
-function onMessage(receivedMessage) {
-  showMessage(receivedMessage.data);
-  console.log("received: onMessage()");
-}
-
-function onClose() {
-  console.log("disconnected: onClose()");
-}
-
-function connect() {
-  websocket = new WebSocket("ws://localhost:8080/ws/chats");
-  websocket.onmessage = onMessage;
-  websocket.onopen = onOpen;
-  websocket.onclose = onClose;
-
+stompClient.onConnect = (frame) => {
   setConnected(true);
-  console.log("connected: connect()");
-}
+  console.log('Connected: ' + frame);
 
-function disconnect() {
-  websocket.close();
+  stompClient.subscribe('/sub/chats', (chatMessage) => {
+    showMessage(JSON.parse(chatMessage.body));
+  });
 
-  setConnected(false);
-  console.log("disconnected: disconnect()");
-}
+  stompClient.publish({
+    destination: "/pub/chats",
+    body: JSON.stringify({
+      message: "connected"
+    })
+  });
+};
 
-function sendMessage() {
-   let username = document.getElementById("username");
-  let message = document.getElementById("message");
+stompClient.onWebSocketError = (error) => {
+  console.error('Error with websocket', error);
+};
 
-  websocket.send(username.value + " : "+message.value);
-  message.value = "";
-  console.log("sent: send()");
-}
-
-function showMessage(message) {
-  $("#messages").append("<tr><td>" + message + "</td></tr>");
-}
+stompClient.onStompError = (frame) => {
+  console.error('Broker reported error: ' + frame.headers['message']);
+  console.error('Additional details: ' + frame.body);
+};
 
 function setConnected(connected) {
   $("#connect").prop("disabled", connected);
   $("#disconnect").prop("disabled", !connected);
+
   if (connected) {
     $("#conversation").show();
   } else {
     $("#conversation").hide();
   }
+
   $("#messages").html("");
 }
 
+function connect() {
+  stompClient.activate();
+}
+
+function disconnect() {
+  stompClient.deactivate();
+  setConnected(false);
+  console.log("Disconnected");
+}
+
+function sendMessage() {
+  const message = $("#message").val();
+
+  if (!message || message.trim() === "") {
+    return;
+  }
+
+  stompClient.publish({
+    destination: "/pub/chats",
+    body: JSON.stringify({
+      message: message
+    })
+  });
+
+  $("#message").val("");
+}
+
+function showMessage(chatMessage) {
+  $("#messages").append(
+      "<tr><td>" + chatMessage.sender + " : " + chatMessage.message + "</td></tr>"
+  );
+}
+
 $(function () {
+  $("form").on('submit', (e) => e.preventDefault());
   $("#connect").click(() => connect());
   $("#disconnect").click(() => disconnect());
   $("#send").click(() => sendMessage());
